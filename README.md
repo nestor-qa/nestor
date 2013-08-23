@@ -1,3 +1,4 @@
+[![Stories in Ready](http://badge.waffle.io/nestor-qa/nestor.png)](http://waffle.io/nestor-qa/nestor)  
 # Nestor-QA
 
 Nestor QA is an extensible test management web application. It supports themes, plug-ins and is 
