@@ -1,8 +1,15 @@
-<?php namespace Nestor\Facades;
+<?php namespace Nestor\Model;
 
 use \Config;
 
 class Nestor {
+
+	var $pluginManager;
+
+	public function __construct() 
+	{
+		$this->pluginManager = \App::make('PluginManager');
+	}
 
 	public function getVersion()
 	{
@@ -24,6 +31,11 @@ class Nestor {
 			}
 		}
 		return $themes;
+	}
+
+	public function getPluginManager() 
+	{
+		return $this->pluginManager;
 	}
 
 }

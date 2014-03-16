@@ -25,7 +25,12 @@ class BackendServiceProvider extends ServiceProvider {
 
 		$this->app->bind('Nestor', function()
 		{
-			return new \Nestor\Facades\Nestor();
+			return new \Nestor\Model\Nestor();
+		});
+
+		$this->app->bind('PluginManager', function() 
+		{
+			return new \Nestor\PluginManager();
 		});
 	}
 
