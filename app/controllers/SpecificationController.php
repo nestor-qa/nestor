@@ -100,27 +100,27 @@ class SpecificationController extends \NavigationTreeController {
 	 *
 	 * /specification/nodes/(:any)
 	 */
-	public function getNodes($node_id)
+	public function getNodes($nodeId)
 	{
 		$currentProject = $this->getCurrentProject();
 		$nodes = $this->nodes->children('1-'.$currentProject->id, 1 /* length*/);
 		$navigationTree = $this->createNavigationTree($nodes, '1-'.$currentProject->id);
-		$navigationTreeHtml = $this->createTreeHTML($navigationTree, $node_id, $this->theme->getThemeName());
+		$navigationTreeHtml = $this->createTreeHTML($navigationTree, $nodeId, $this->theme->getThemeName());
 		$args = array();
 
 		try
 		{
-			$node = $this->nodes->find($node_id, $node_id);
+			$node = $this->nodes->find($nodeId, $nodeId);
 		}
 		catch (Exception $mnfe)
 		{
 			return Redirect::to('/specification/')
-				->with('flash', sprintf('The node %s does not belong to the current selected project', $node_id));
+				->with('flash', sprintf('The node %s does not belong to the current selected project', $nodeId));
 		}
 		if (!$this->isNodeInTree($navigationTree, $node))
 		{
 			return Redirect::to('/specification/')
-				->with('flash', sprintf('The node %s does not belong to the current selected project', $node_id));
+				->with('flash', sprintf('The node %s does not belong to the current selected project', $nodeId));
 		}
 		$args['node'] = $node;
 		$this->theme->breadcrumb()->

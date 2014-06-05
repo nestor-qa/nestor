@@ -25,14 +25,7 @@ class CreateTestCasesTable extends Migration {
 				->references('id')
 				->on('test_suites')
 				->onDelete('cascade');
-			$table->integer('execution_type_id');
-			$table->foreign('execution_type_id')
-				->references('id')
-				->on('execution_types');
-			$table->string('name');
-			$table->string('description')->nullable();
 			$table->timestamps();
-			$table->unique(array('name', 'test_suite_id'));
 		});
 	}
 

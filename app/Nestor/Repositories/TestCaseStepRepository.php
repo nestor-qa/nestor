@@ -23,32 +23,32 @@ interface TestCaseStepRepository {
 	 * @param  int   $test_case_id
 	 * @return TestCaseStep
 	 */
-	public function findByTestCaseId($test_case_id);
+	public function findByTestCaseId($test_case_version_id);
 
 	/**
 	 * Create a test case step
 	 *
-	 * @param  int     $test_case_id
+	 * @param  int     $test_case_version_id
 	 * @param  int     $order
 	 * @param  string  $description
 	 * @param  int     $expected_result
 	 * @param  int  $execution_status_id
 	 * @return TestCaseStep
 	 */
-	public function create($test_case_id, $order, $description, $expected_result, $execution_status_id);
+	public function create($test_case_version_id, $order, $description, $expected_result, $execution_status_id);
 
 	/**
 	 * Update a test case step
 	 *
 	 * @param  int     $id
-	 * @param  int     $test_case_id
+	 * @param  int     $test_case_version_id
 	 * @param  int     $order
 	 * @param  string  $description
 	 * @param  int     $expected_result
 	 * @param  int  $execution_status_id
 	 * @return TestCaseStep
 	 */
-	public function update($id, $test_case_id, $order, $description, $expected_result, $execution_status_id);
+	public function update($id, $test_case_version_id, $order, $description, $expected_result, $execution_status_id);
 
 	/**
 	 * Delete a test case step

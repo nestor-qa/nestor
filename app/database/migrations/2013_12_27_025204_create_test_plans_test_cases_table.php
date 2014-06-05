@@ -16,8 +16,8 @@ class CreateTestPlansTestCasesTable extends Migration {
 		{
 			$table->integer('test_plan_id');
 			$table->foreign('test_plan_id')->references('id')->on('test_plans');
-			$table->integer('test_case_id');
-			$table->foreign('test_case_id')->references('id')->on('test_cases');
+			$table->integer('test_case_version_id');
+			$table->foreign('test_case_version_id')->references('id')->on('test_case_versions');
 			$table->timestamps();
 		});
 	}

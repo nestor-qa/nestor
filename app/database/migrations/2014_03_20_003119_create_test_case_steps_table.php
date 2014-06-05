@@ -17,10 +17,10 @@ class CreateTestCaseStepsTable extends Migration {
 			$table->increments('id');
 			$table->integer('order');
 			$table->string('description', 500);
-			$table->integer('test_case_id');
-			$table->foreign('test_case_id')
+			$table->integer('test_case_version_id');
+			$table->foreign('test_case_version_id')
 				->references('id')
-				->on('test_cases')
+				->on('test_case_versions')
 				->onDelete('cascade');
 			$table->timestamps();
 		});

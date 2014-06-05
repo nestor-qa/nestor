@@ -1,7 +1,10 @@
 <?php namespace Nestor\Repositories;
 
 use Auth, Hash, Validator;
-use \TestCase2;
+use TestCase2;
+use DB;
+use Log;
+use TestCaseVersion;
 
 class DbTestCaseRepository implements TestCaseRepository {
 
@@ -23,7 +26,13 @@ class DbTestCaseRepository implements TestCaseRepository {
 	 */
 	public function find($id)
 	{
-		return TestCase2::with('steps')->findOrFail($id);
+		return TestCase2::
+			with(array('testCaseVersions' => function($query) 
+			{
+				$query->orderBy('version', 'desc');
+			}))
+			->with('testCaseVersions.executionType')
+			->findOrFail($id);
 	}
 
 	/**
@@ -34,11 +43,19 @@ class DbTestCaseRepository implements TestCaseRepository {
 	 * @param  int     $execution_type_id
 	 * @param  string  $name
 	 * @param  string  $description
-	 * @return TestCase
+	 * @return array|TestCase
 	 */
 	public function create($project_id, $test_suite_id, $execution_type_id, $name, $description, $prerequisite)
 	{
-		return TestCase2::create(compact('project_id', 'test_suite_id', 'execution_type_id', 'name', 'description', 'prerequisite'));
+		Log::debug('Creating new test case');
+		$pdo = DB::connection()->getPdo();
+		$testcase = TestCase2::create(compact('project_id', 'test_suite_id'));
+		$test_case_id = $pdo->lastInsertId();
+		$testcase->id = $test_case_id;
+		$version = 1;
+		Log::debug(sprintf('Creating initial test case version for test case %d', $testcase->id));
+		$testcaseVersion = TestCaseVersion::create(compact('version', 'test_case_id', 'execution_type_id', 'name', 'description', 'prerequisite'));
+		return array($testcase, $testcaseVersion);
 	}
 
 	/**
@@ -71,9 +88,11 @@ class DbTestCaseRepository implements TestCaseRepository {
 
 	public function isNameAvailable($id, $test_suite_id, $name)
 	{
-		return TestCase2::where('id', '<>', $id)
+		return TestCase2::select('test_cases.*, test_case_versions.name')
+			->join('test_case_versions', 'test_cases.id', '=', 'test_case_versions.id')
+			->where('test_cases.id', '<>', $id)
 			->where('test_suite_id', '=', $test_suite_id)
-			->where(new \Illuminate\Database\Query\Expression("lower(test_cases.name)"), '=', strtolower($name))
+			->where(new \Illuminate\Database\Query\Expression("lower(test_case_versions.name)"), '=', strtolower($name))
 			->count() == 0;
 	}
 

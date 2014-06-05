@@ -95,10 +95,12 @@ class TestCasesController extends \BaseController {
 	public function store()
 	{
 		$testcase = null;
+		$testcaseVersion = null;
 		$navigationTreeNode = null;
 		Log::info('Creating test case...');
 		$pdo = null;
-		try {
+		try 
+		{
 			if (!$this->testcases->isNameAvailable(0, Input::get('test_suite_id'), Input::get('name')))
 			{
 				throw new Exception('Test case not created: Name already taken.');
@@ -106,7 +108,7 @@ class TestCasesController extends \BaseController {
 
 			$pdo = DB::connection()->getPdo();
     		$pdo->beginTransaction();
-			$testcase = $this->testcases->create(
+			list($testcase, $testcaseVersion) = $this->testcases->create(
 					Input::get('project_id'),
 					Input::get('test_suite_id'),
 					Input::get('execution_type_id'),
@@ -114,8 +116,7 @@ class TestCasesController extends \BaseController {
 					Input::get('description'),
 					Input::get('prerequisite')
 			);
-			$testCaseId = $pdo->lastInsertId();
-			$testcase->id = $testCaseId;
+			
 			$stepOrders = Input::get('step_order');
 			$stepDescriptions = Input::get('step_description');
 			$stepExpectedResults = Input::get('step_expected_result');
@@ -129,28 +130,46 @@ class TestCasesController extends \BaseController {
 					$stepExpectedResult = $stepExpectedResults[$i];
 					$stepExecutionStatus = $stepExecutionStatuses[$i];
 
-					$testcaseStep = $this->testcaseSteps->create($testCaseId, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+					$testcaseStep = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					if (!$testcaseStep->isValid() || !$testcaseStep->isSaved())
 					{
 						Log::warning('Failed to save a test step. Rolling back.');
 						throw new Exception('Failed to persist a test case. Check your input parameters.');
 					}
 				}
+				Log::debug('Test steps created');
 			}
-			$ancestor = Input::get('ancestor');
-			if ($testcase->isValid() && $testcase->isSaved())
+			else
 			{
+				Log::debug('No test steps created');
+			}
+
+			$ancestor = Input::get('ancestor');
+			if ($testcase->isValid() && $testcase->isSaved() && $testcaseVersion->isValid() && $testcaseVersion->isSaved())
+			{
+				Log::debug('Test Case valid and saved');
 				$navigationTreeNode = $this->nodes->create(
 						$ancestor,
-						'3-' . $testCaseId,
-						$testCaseId,
+						'3-' . $testcase->id,
+						$testcase->id,
 						3,
-						$testcase->name
+						$testcaseVersion->name
 				);
 				if ($navigationTreeNode)
 				{
+					Log::debug('Committing transaction');
 					$pdo->commit();
+				} 
+				else
+				{
+					Log::debug('Failed to create navigation node. Rolling back transaction');
+					$pdo->rollBack();
 				}
+			}
+			else
+			{
+				Log::debug('Failed to create test case. Rolling back transaction');
+				$pdo->rollBack();
 			}
 		} catch (\PDOException $e) {
 			if (!is_null($pdo))
@@ -167,15 +186,27 @@ class TestCasesController extends \BaseController {
 			$messages->add('nestor.customError', $e->getMessage());
 			return Redirect::to('/specification/')->withInput()->withErrors($messages);
 		}
-		if ($testcase->isSaved() && $navigationTreeNode)
+		if ($testcase->isSaved() && $testcaseVersion->isSaved() && $navigationTreeNode)
 		{
 			return Redirect::to('/specification/nodes/' . '3-' . $testcase->id)
 				->with('success', 'A new test case has been created');
 		} else {
-			Log::warning('Failed to store new Test Case: ' . $testcase->errors());
+			if (!$testcase->isSaved())
+			{
+				Log::warning('Failed to store new Test Case: ' . $testcase->errors());
+				$messages = new Illuminate\Support\MessageBag;
+				$messages->add('nestor.customError', 'Failed to store new Test Case: ' . $testcase->errors());
+			}
+			else if (!$testcaseVersion->isSaved())
+			{
+				Log::warning('Failed to store new Test Case Version: ' . $testcaseVersion->errors());
+				$messages = new Illuminate\Support\MessageBag;
+				$messages->add('nestor.customError', 'Failed to store new Test Case Version: ' . $testcaseVersion->errors());
+			}
+			
 			return Redirect::to('/specification/')
 				->withInput()
-				->withErrors($testcase->errors());
+				->withErrors($messages);
 		}
 	}
 

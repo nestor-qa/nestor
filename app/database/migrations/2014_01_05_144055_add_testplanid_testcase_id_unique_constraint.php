@@ -14,7 +14,7 @@ class AddTestplanidTestcaseIdUniqueConstraint extends Migration {
 	{
 		Schema::table('test_plans_test_cases', function(Blueprint $table)
 		{
-			$table->unique(array('test_plan_id', 'test_case_id'));
+			$table->unique(array('test_plan_id', 'test_case_version_id'));
 		});
 	}
 
@@ -27,7 +27,7 @@ class AddTestplanidTestcaseIdUniqueConstraint extends Migration {
 	{
 		Schema::table('test_plans_test_cases', function(Blueprint $table)
 		{
-			$table->dropUnique(array('test_plan_id', 'test_case_id'));
+			$table->dropUnique(array('test_plan_id', 'test_case_version_id'));
 		});
 	}
 
