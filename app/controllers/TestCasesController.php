@@ -276,6 +276,7 @@ class TestCasesController extends \BaseController {
 	public function update($id)
 	{
 		$testcase = null;
+		$testcaseVersion = null;
 		$navigationTreeNode = null;
 		Log::info('Updating test case...');
 		$pdo = null;
@@ -288,21 +289,21 @@ class TestCasesController extends \BaseController {
 				throw new Exception('Test case not updated: Name already taken.');
 			}
 
-			$testcase = $this->testcases->update($id,
-							Input::get('project_id'),
-							Input::get('test_suite_id'),
-							Input::get('execution_type_id'),
-							Input::get('name'),
-							Input::get('description'),
-							Input::get('prerequisite'));
+			list($testcase, $testcaseVersion) = $this->testcases->update($id,
+				Input::get('project_id'),
+				Input::get('test_suite_id'),
+				Input::get('execution_type_id'),
+				Input::get('name'),
+				Input::get('description'),
+				Input::get('prerequisite'));
 
-			if (!$testcase->isValid()) 
+			if (!$testcaseVersion->isSaved()) 
 			{
-				throw new Exception('Test case not updated: ' . $testcase->errors());
+				throw new Exception('Test case version not updated: ' . $testcaseVersion->errors());
 			}
 
 			Log::info('Updating test case steps...');
-			$existingSteps = $testcase->steps->all();
+			$existingSteps = $testcaseVersion->steps->all();
 
 			// update test case steps
 			$stepIds = Input::get('step_id');
@@ -322,11 +323,11 @@ class TestCasesController extends \BaseController {
 
 					if (strcmp($stepId, "-1") !== 0)
 					{
-						$testcaseStep = $this->testcaseSteps->update($stepId, $id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+						$testcaseStep = $this->testcaseSteps->update($stepId, $testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					}
 					else
 					{
-						$testcaseStep = $this->testcaseSteps->create($id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+						$testcaseStep = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					}
 					if (!$testcaseStep->isValid() || !$testcaseStep->isSaved())
 					{
@@ -343,7 +344,9 @@ class TestCasesController extends \BaseController {
 					Log::info("Deleting test case step: " . $existingStep->id);
 					$this->testcaseSteps->delete($existingStep->id);
 				}
-			} else {
+			} 
+			else 
+			{
 				top: foreach ($existingSteps as $existingStep) 
 				{
 					$remove = true;
@@ -362,7 +365,7 @@ class TestCasesController extends \BaseController {
 
 			$navigationTreeNode = $this->nodes->updateDisplayNameByDescendant(
 				'3-'.$testcase->id,
-				$testcase->name);
+				$testcaseVersion->name);
 			$pdo->commit();	
 		} catch (\Exception $e) {
 			Log::error($e);
@@ -372,8 +375,9 @@ class TestCasesController extends \BaseController {
 				->withInput()
 				->with('error', $e->getMessage());
 		}
-		if (!is_null($testcase) && $testcase->isSaved())
+		if (!is_null($testcase) && $testcase->isSaved() && $testCase)
 		{
+			Log::info(sprintf('Test case %d updated.', $testcase->id));
 			return Redirect::to(sprintf('/specification/nodes/%s-%s', 3, $testcase->id))
 				->with('success', 'Test case updated');
 		} else {

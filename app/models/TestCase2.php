@@ -42,5 +42,13 @@ class TestCase2 extends Magniloquent {
 		'testCaseVersions' => array('hasMany', 'TestCaseVersion', 'test_case_id')
 	);
 
-	protected static $purgeable = ['testCaseVersion'];
+	public function latestVersion()
+	{
+		return $this->hasMany('TestCaseVersion', 'test_case_id')
+			->orderBy('version', 'desc')
+			->take(1)
+			->firstOrFail();
+	}
+
+	protected static $purgeable = [];
 }

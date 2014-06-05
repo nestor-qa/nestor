@@ -43,7 +43,7 @@ class DbTestCaseRepository implements TestCaseRepository {
 	 * @param  int     $execution_type_id
 	 * @param  string  $name
 	 * @param  string  $description
-	 * @return array|TestCase
+	 * @return array(TestCase, TestCaseVersion)
 	 */
 	public function create($project_id, $test_suite_id, $execution_type_id, $name, $description, $prerequisite)
 	{
@@ -55,6 +55,7 @@ class DbTestCaseRepository implements TestCaseRepository {
 		$version = 1;
 		Log::debug(sprintf('Creating initial test case version for test case %d', $testcase->id));
 		$testcaseVersion = TestCaseVersion::create(compact('version', 'test_case_id', 'execution_type_id', 'name', 'description', 'prerequisite'));
+		Log::debug('Version 1 created');
 		return array($testcase, $testcaseVersion);
 	}
 
@@ -66,15 +67,26 @@ class DbTestCaseRepository implements TestCaseRepository {
 	 * @param  int     $execution_type_id
 	 * @param  string  $name
 	 * @param  string  $description
-	 * @return TestCase
+	 * @return array(TestCase, TestCaseVersion)
 	 */
 	public function update($id, $project_id, $test_suite_id, $execution_type_id, $name, $description, $prerequisite)
 	{
-		$test_case = $this->find($id);
+		Log::debug('Updating test case');
+		$pdo = DB::connection()->getPdo();
+		$testcase = $this->find($id);
+		$test_case_id = $testcase->id;
 
-		$test_case->fill(compact('project_id', 'test_suite_id', 'execution_type_id', 'name', 'description', 'prerequisite'))->save();
+		$previousVersion = $testcase->testCaseVersions->first();
 
-		return $test_case;
+		$version = $previousVersion->version;
+		Log::debug(sprintf('Updating test case version for test case %d', $testcase->id));
+		$version += 1;
+
+		Log::debug(sprintf('Creating version %d for test case %d', $version, $testcase->id));
+		$testcaseVersion = TestCaseVersion::create(compact('version', 'test_case_id', 'execution_type_id', 'name', 'description', 'prerequisite'));
+
+		Log::debug(sprintf('Version %d created', $version));
+		return array($testcase, $testcaseVersion);
 	}
 
 	/**
