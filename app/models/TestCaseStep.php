@@ -1,7 +1,6 @@
 <?php
 
 use Magniloquent\Magniloquent\Magniloquent;
-use \Execution;
 
 class TestCaseStep extends Magniloquent {
 
@@ -17,7 +16,7 @@ class TestCaseStep extends Magniloquent {
 	 *
 	 * @var array
 	 */
-	protected $fillable = array('id', 'test_case_version_id', 'order', 'description', 'expected_result', 'execution_status_id');
+	protected $fillable = array('id');
 
 	/**
 	 * The attributes excluded from the model's JSON form.
@@ -28,31 +27,15 @@ class TestCaseStep extends Magniloquent {
 
 	protected static $rules = array(
 		"save" => array(
-				'description' => '',
-				'test_case_version_id' => 'required|numeric',
-				'order' => 'required|numeric',
-				'expected_result' => '',
-				'execution_status_id' => 'required|numeric'
 		),
 		"create" => array(
-				'description' => '',
-				'test_case_version_id' => 'required|numeric',
-				'order' => 'required|numeric',
-				'expected_result' => '',
-				'execution_status_id' => 'required|numeric'
 		),
 		"update" => array(
-				'description' => '',
-				'test_case_version_id' => 'required|numeric',
-				'order' => 'required|numeric',
-				'expected_result' => '',
-				'execution_status_id' => 'required|numeric'
 		)
 	);
 
 	protected static $relationships = array(
-		'executionStatus' => array('belongsTo', 'ExecutionStatus', 'execution_status_id'),
-		'executions' => array('hasMany', 'StepExecution', 'test_case_step_id')
+		'testCaseStepVersions' => array('hasMany', 'TestCaseStepVersion', 'test_case_step_id')
 	);
 
 	protected static $purgeable = [''];

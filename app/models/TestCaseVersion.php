@@ -1,7 +1,6 @@
 <?php
 
 use Magniloquent\Magniloquent\Magniloquent;
-use \Execution;
 
 class TestCaseVersion extends Magniloquent {
 
@@ -36,20 +35,8 @@ class TestCaseVersion extends Magniloquent {
 			'execution_type_id' => 'required'
 		),
 		"create" => array(
-			'version' => 'required|numeric|min:1',
-			'name' => 'required|min:2',
-			'description' => '',
-			'prerequisite' => '',
-			'test_case_id' => 'required|numeric',
-			'execution_type_id' => 'required'
 		),
 		"update" => array(
-			'version' => 'required|numeric|min:1',
-			'name' => 'required|min:2',
-			'description' => '',
-			'prerequisite' => '',
-			'test_case_id' => 'required|numeric',
-			'execution_type_id' => 'required'
 		),
 	);
 
@@ -57,14 +44,15 @@ class TestCaseVersion extends Magniloquent {
 		'testcase' => array('belongsTo', 'TestCase2', 'test_case_id'),
 		'executionType' => array('belongsTo', 'ExecutionType', 'execution_type_id'),
 		'executions' => array('hasMany', 'Execution', 'test_case_id'),
-		'steps' => array('hasMany', 'TestCaseStep', 'test_case_version_id')
+		'steps' => array('belongsToMany', 'TestCaseStep', 'test_case_step_versions')
 	);
 
 	protected static $purgeable = [''];
 	
 	public function sortedSteps()
 	{
-		return TestCaseVersion::hasMany('TestCaseStep', 'test_case_version_id')->orderBy('order')->get();
+		return TestCaseVersion::
+			hasMany('TestCaseStepVersion', 'test_case_version_id', 'id');
 	}
 
 }

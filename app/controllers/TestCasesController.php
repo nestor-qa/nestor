@@ -130,11 +130,16 @@ class TestCasesController extends \BaseController {
 					$stepExpectedResult = $stepExpectedResults[$i];
 					$stepExecutionStatus = $stepExecutionStatuses[$i];
 
-					$testcaseStep = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+					list($testcaseStep, $testcaseStepVersion) = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					if (!$testcaseStep->isValid() || !$testcaseStep->isSaved())
 					{
-						Log::warning('Failed to save a test step. Rolling back.');
-						throw new Exception('Failed to persist a test case. Check your input parameters.');
+						Log::warning('Failed to save a test case step. Rolling back.');
+						throw new Exception('Failed to persist a test case step. Check your input parameters.');
+					}
+					if (!$testcaseStepVersion->isValid() || !$testcaseStepVersion->isSaved())
+					{
+						Log::warning('Failed to save a test case step version. Rolling back.');
+						throw new Exception('Failed to persist a test case step version. Check your input parameters.');
 					}
 				}
 				Log::debug('Test steps created');
@@ -149,11 +154,11 @@ class TestCasesController extends \BaseController {
 			{
 				Log::debug('Test Case valid and saved');
 				$navigationTreeNode = $this->nodes->create(
-						$ancestor,
-						'3-' . $testcase->id,
-						$testcase->id,
-						3,
-						$testcaseVersion->name
+					$ancestor,
+					'3-' . $testcase->id,
+					$testcase->id,
+					3,
+					$testcaseVersion->name
 				);
 				if ($navigationTreeNode)
 				{
@@ -238,32 +243,32 @@ class TestCasesController extends \BaseController {
 		$args['testcase'] = $testcase;
 		$args['execution_types'] = $this->executionTypes->all();
 		$executionStatusesCol = $this->executionStatuses->all();
-		$execution_statuses = array();
-		foreach ($executionStatusesCol as $execution_status)
+		$executionStatuses = array();
+		foreach ($executionStatusesCol as $executionStatus)
 		{
-			if ($execution_status->id != 1 && $execution_status->id != 2) 
+			if ($executionStatus->id != 1 && $executionStatus->id != 2) 
 			{
 				$o = new stdClass();
-				$o->name = $execution_status->name;
-				$o->id = $execution_status->id;
-				$execution_statuses[] = $o;
+				$o->name = $executionStatus->name;
+				$o->id = $executionStatus->id;
+				$executionStatuses[] = $o;
 			}
 		}
-		$args['execution_statuses'] = json_encode($execution_statuses);
-		$execution_statuses_ids = array();
-		foreach ($executionStatusesCol as $execution_status) 
+		$args['execution_statuses'] = json_encode($executionStatuses);
+		$executionStatusesIds = array();
+		foreach ($executionStatusesCol as $executionStatus) 
 		{
-			if ($execution_status->id == 1 || $execution_status->id == 2)
+			if ($executionStatus->id == 1 || $executionStatus->id == 2)
 				continue; // Skip NOT RUN
-			$execution_statuses_ids[$execution_status->id] = $execution_status->name;
+			$executionStatusesIds[$executionStatus->id] = $executionStatus->name;
 		}
-		$args['execution_statuses_ids'] = $execution_statuses_ids;
-		$execution_types_ids = array();
+		$args['execution_statuses_ids'] = $executionStatusesIds;
+		$executionTypesIds = array();
 		foreach ($args['execution_types'] as $execution_type)
 		{
-			$execution_types_ids[$execution_type->id] = $execution_type->name;
+			$executionTypesIds[$execution_type->id] = $execution_type->name;
 		}
-		$args['execution_type_ids'] = $execution_types_ids;
+		$args['execution_type_ids'] = $executionTypesIds;
 		return $this->theme->scope('testcase.edit', $args)->render();
 	}
 
@@ -302,7 +307,7 @@ class TestCasesController extends \BaseController {
 				throw new Exception('Test case version not updated: ' . $testcaseVersion->errors());
 			}
 
-			Log::info('Updating test case steps...');
+			Log::info('Checking if there are test case steps...');
 			$existingSteps = $testcaseVersion->steps->all();
 
 			// update test case steps
@@ -313,6 +318,7 @@ class TestCasesController extends \BaseController {
 			$stepExecutionStatuses = Input::get('step_execution_status');
 			if (isset($stepOrders) && is_array($stepOrders)) 
 			{
+				Log::info('Updating test case steps...');
 				for($i = 0; $i < count($stepOrders); ++$i)
 				{
 					$stepId = $stepIds[$i];
@@ -323,16 +329,18 @@ class TestCasesController extends \BaseController {
 
 					if (strcmp($stepId, "-1") !== 0)
 					{
-						$testcaseStep = $this->testcaseSteps->update($stepId, $testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+						Log::debug(sprintf('Updating test case step %d', $stepId));
+						list($testcaseStep, $testcaseStepVersion) = $this->testcaseSteps->update($stepId, $testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					}
 					else
 					{
-						$testcaseStep = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
+						Log::debug('Creating new test case step');
+						list($testcaseStep, $testcaseStepVersion) = $this->testcaseSteps->create($testcaseVersion->id, $stepOrder, $stepDescription, $stepExpectedResult, $stepExecutionStatus);
 					}
-					if (!$testcaseStep->isValid() || !$testcaseStep->isSaved())
+					if (!$testcaseStepVersion->isValid() || !$testcaseStepVersion->isSaved())
 					{
-						Log::warning('Failed to save a test step. Rolling back.');
-						throw new Exception('Failed to persist a test case step. Check your input parameters.');
+						Log::warning('Failed to save a test case step version. Rolling back.');
+						throw new Exception('Failed to persist a test case step version. Check your input parameters.');
 					}
 				}
 			}
@@ -366,24 +374,27 @@ class TestCasesController extends \BaseController {
 			$navigationTreeNode = $this->nodes->updateDisplayNameByDescendant(
 				'3-'.$testcase->id,
 				$testcaseVersion->name);
+			Log::debug('Committing transaction');
 			$pdo->commit();	
 		} catch (\Exception $e) {
 			Log::error($e);
-			if (!is_null($pdo))
+			if (!is_null($pdo)) 
+			{
+				Log::warning('Rolling back transaction');
 				$pdo->rollBack();
+			}
 			return Redirect::to(sprintf('/testcases/%d/edit', $id))
 				->withInput()
 				->with('error', $e->getMessage());
 		}
-		if (!is_null($testcase) && $testcase->isSaved() && $testCase)
+		if (!is_null($testcase) && !is_null($testcaseVersion))
 		{
 			Log::info(sprintf('Test case %d updated.', $testcase->id));
 			return Redirect::to(sprintf('/specification/nodes/%s-%s', 3, $testcase->id))
 				->with('success', 'Test case updated');
 		} else {
 			return Redirect::to(sprintf('/testcases/%d/edit', $id))
-				->withInput()
-				->withErrors($testcase->errors());
+				->withInput();
 		}
 	}
 

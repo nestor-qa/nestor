@@ -18,12 +18,12 @@ interface TestCaseStepRepository {
 	public function find($id);
 
 	/**
-	 * Get a TestCaseStep by their test case id.
+	 * Get a TestCaseStep by their test case version id.
 	 *
-	 * @param  int   $test_case_id
+	 * @param  int   $testCaseVersionId
 	 * @return TestCaseStep
 	 */
-	public function findByTestCaseId($test_case_version_id);
+	public function findByTestCaseVersionId($testCaseVersionId);
 
 	/**
 	 * Create a test case step

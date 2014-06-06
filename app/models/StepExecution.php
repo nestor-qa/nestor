@@ -16,10 +16,11 @@ class StepExecution extends Magniloquent {
 	 *
 	 * @var array
 	 */
-	protected $fillable = array('id', 'execution_id', 'test_case_step_id', 'execution_status_id');
+	protected $fillable = array('id', 'execution_id', 'test_case_step_version_id', 'execution_status_id');
 
 	protected static $relationships = array(
-		'executionStatus' => array('belongsTo', 'ExecutionStatus', 'execution_status_id')
+		'executionStatus' => array('belongsTo', 'ExecutionStatus', 'execution_status_id'),
+		'testCaseStepVersion' => array('belongsTo', 'TestCaseStepVersion', 'test_case_step_version_id')
 	);
 
 	/**
@@ -32,18 +33,12 @@ class StepExecution extends Magniloquent {
 	protected static $rules = array(
 		"save" => array(
 				'execution_id' => 'required|numeric',
-				'test_case_step_id' => 'required|numeric',
+				'test_case_step_version_id' => 'required|numeric',
 				'execution_status_id' => 'required|numeric'
 		),
 		"create" => array(
-				'execution_id' => 'required|numeric',
-				'test_case_step_id' => 'required|numeric',
-				'execution_status_id' => 'required|numeric'
 		),
 		"update" => array(
-				'execution_id' => 'required|numeric',
-				'test_case_id' => 'required|numeric',
-				'execution_status_id' => 'required|numeric'
 		)
 	);
 

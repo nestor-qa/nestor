@@ -201,16 +201,15 @@ YUI().use('node', 'sortable', 'template', 'dd-delegate', 'transition', function(
     e.stopPropagation();
   };
 
-  {% for step in testcase.latestVersion.sortedSteps() %}
-  addExistingStep({
-    'id': '{{ step.id }}',
+  {% for step in testcase.latestVersion.sortedSteps.get() %}
+   addExistingStep({
+    'id': '{{ step.test_case_step_id }}',
     'order': "{{ step.order }}",
-    'description': "{{ step.description}}",
-    'expected_result': "{{ step.expected_result }}",
+    'description': "{{ step.description|e('js')}}",
+    'expected_result': "{{ step.expected_result|e('js') }}",
     'execution_statuses': {{ execution_statuses }},
     'execution_status_id': "{{ step.executionStatus.first.id }}"
    });
-  console.log("{{ step.executionStatus.first.id }}");
   {% endfor %}
 
 });

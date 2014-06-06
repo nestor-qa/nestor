@@ -20,10 +20,10 @@ class CreateStepExecutionsTable extends Migration {
 				->references('id')
 				->on('executions')
 				->onDelete('cascade');
-			$table->integer('test_case_step_id');
-			$table->foreign('test_case_step_id')
+			$table->integer('test_case_step_version_id');
+			$table->foreign('test_case_step_version_id')
 				->references('id')
-				->on('test_case_steps')
+				->on('test_case_step_versions')
 				->onDelete('cascade');
 			$table->integer('execution_status_id')->default(1);
 			$table->foreign('execution_status_id')

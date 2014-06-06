@@ -12,7 +12,7 @@
 <label>Test Steps</label>
 {% set steps = testcase.latestVersion.sortedSteps() %}
 {% if steps.count() > 0 %}
-	{% for step in steps %}
+	{% for step in steps.get() %}
 <table class='table table-bordered table-hover'>
 	<thead>
 		<colgroup>

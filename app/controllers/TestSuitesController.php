@@ -176,7 +176,7 @@ class TestSuitesController extends \BaseController {
 
 		if ($testsuite->isSaved())
 		{
-			return Redirect::route('testsuites.show', $id)->with('flash', 'The test suite was updated');
+			return Redirect::route('testsuites.show', $id)->with('success', 'The test suite was updated');
 		} else {
 			return Redirect::route('testsuites.edit', $id)
 				->withInput()

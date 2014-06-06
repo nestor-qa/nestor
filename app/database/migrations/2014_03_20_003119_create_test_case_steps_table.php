@@ -15,13 +15,6 @@ class CreateTestCaseStepsTable extends Migration {
 		Schema::create('test_case_steps', function(Blueprint $table)
 		{
 			$table->increments('id');
-			$table->integer('order');
-			$table->string('description', 500);
-			$table->integer('test_case_version_id');
-			$table->foreign('test_case_version_id')
-				->references('id')
-				->on('test_case_versions')
-				->onDelete('cascade');
 			$table->timestamps();
 		});
 	}

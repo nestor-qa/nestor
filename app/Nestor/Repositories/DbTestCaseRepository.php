@@ -71,12 +71,11 @@ class DbTestCaseRepository implements TestCaseRepository {
 	 */
 	public function update($id, $project_id, $test_suite_id, $execution_type_id, $name, $description, $prerequisite)
 	{
-		Log::debug('Updating test case');
-		$pdo = DB::connection()->getPdo();
 		$testcase = $this->find($id);
 		$test_case_id = $testcase->id;
 
-		$previousVersion = $testcase->testCaseVersions->first();
+		Log::debug('Retrieving previous version');
+		$previousVersion = $testcase->latestVersion();
 
 		$version = $previousVersion->version;
 		Log::debug(sprintf('Updating test case version for test case %d', $testcase->id));

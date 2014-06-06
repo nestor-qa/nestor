@@ -12,8 +12,8 @@
                 {{ Form.label('description', 'Description', {'class': 'col-xs-2 control-label'}) }}
                 <div class="col-xs-10">
                     <!-- editor plugin -->
-                    {{ editor.render('description', project.description, {'id': "description", 'rows': "3", 'class': "form-control col-xs-12"}) }}
-                    {# Form.textarea('description', project.description, {'id': "description", 'rows': "3", 'class': "form-control col-xs-12"}) #}
+                    {# editor.render('description', project.description, {'id': "description", 'rows': "3", 'class': "form-control col-xs-12"}) #}
+                    {{ Form.textarea('description', project.description, {'id': "description", 'rows': "3", 'class': "form-control col-xs-12"}) }}
                 </div>
             </div>
             <div class="form-group">

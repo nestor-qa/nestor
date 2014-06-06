@@ -20,7 +20,7 @@
 		<p class='pull-right'><strong>Status</strong></p>
 	</div>
 	<div class='col-xs-10'>
-		<p>{{ project.name }}</p>
+		<p>{{ project.projectStatus.first.name }}</p>
 	</div>
 </div>
 <div class='row'>

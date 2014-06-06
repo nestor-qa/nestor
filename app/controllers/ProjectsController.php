@@ -149,10 +149,10 @@ class ProjectsController extends \BaseController {
 			add(sprintf('Project %s', $project->name));
 		$args = array();
 		$args['project'] = $project;
-		$editorPluginId = $settings['editor'];
-		$editorPlugin = Nestor::getPluginManager()->getByPluginId($editorPluginId);
-		$editor = new $editorPlugin->provides['Nestor\Model\Editor'][0];
-		$args['editor'] = $editor;
+		// $editorPluginId = $settings['editor'];
+		// $editorPlugin = Nestor::getPluginManager()->getByPluginId($editorPluginId);
+		// $editor = new $editorPlugin->provides['Nestor\Model\Editor'][0];
+		// $args['editor'] = $editor;
 		return $this->theme->scope('project.edit', $args)->render();
 	}
 
