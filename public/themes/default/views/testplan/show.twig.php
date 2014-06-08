@@ -1,4 +1,4 @@
-{% block content %}
+	{% block content %}
 <div class='row'>
 	<div class='col-xs-2'>
 		<p class='pull-right'><strong>Name</strong></p>
@@ -35,7 +35,7 @@
 			{{ HTML.link('planning/' ~ testplan.id ~ '/addTestCases', 'Manage test cases in this test plan', {'class': 'btn btn-primary'}) }}
 		</div>
 		{% endif %}
-		{% if testcases[0] is defined %}
+		{% if testcases.count() > 0 %}
 		<table class='table table-bordered table-striped table-hover'>
 			<thead>
 				<tr>
@@ -44,7 +44,7 @@
 				</tr>
 			</thead>
 			<tbody>
-			{% for testcase in testcases %}
+			{% for testcase in testcases.get() %}
 				<tr>
 					<td>{{ HTML.linkRoute('testcases.show', testcase.name, testcase.id) }}</td>
 					<td>{{ testcase.executionType.first.name }}</td>

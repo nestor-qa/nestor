@@ -41,7 +41,8 @@ class TestPlan extends Magniloquent {
 
 	protected static $relationships = array(
 		'project' => array('belongsTo', 'Project', 'project_id'),
-		'testruns' => array('hasMany', 'TestRun')
+		'testruns' => array('hasMany', 'TestRun'),
+		/*'testcaseVersions' => array('belongsToMany', 'TestCaseVersion', 'test_plans_test_cases', 'test_plan_id', 'test_case_version_id')*/
 	);
 
 	protected static $purgeable = [''];
@@ -58,6 +59,46 @@ group by tc.id
 EOF;
 		$results = DB::select(DB::raw($sql), array('test_plan_id' => $this->id));
 		return $results;
+	}
+
+	// public function testcases()
+	// {
+	// 	$testcases = TestCase2::
+	// 		select('test_cases.*')
+	// 		->join('test_case_versions', 'test_case_versions.test_case_id', '=', 'test_cases.id')
+	// 		->join('test_plans_test_cases', 'test_plans_test_cases.test_case_version_id', '=', 'test_case_versions.id')
+	// 		->where('test_plans_test_cases.test_plan_id', '=', $this->id)
+	// 		->groupBy('test_cases.id');
+
+	// 	return $testcases;
+	// }
+
+	public function testcases()
+	{
+		$testcases = array();
+		$testcaseVersions = $this->testcaseVersions()->get();
+		foreach ($testcaseVersions as $testcaseVersion)
+		{
+			$testcases[] = $testcaseVersion->testcase()->first();
+		}
+		return new \Illuminate\Support\Collection($testcases);
+	}
+
+	// public function testcaseVersions()
+	// {
+	// 	$testcases = TestCaseVersion::
+	// 		select('test_case_versions.*')
+	// 		->join('test_plans_test_cases', 'test_plans_test_cases.test_case_version_id', '=', 'test_case_versions.id')
+	// 		->where('test_plans_test_cases.test_plan_id', '=', $this->id)
+	// 		->groupBy('test_case_versions.test_case_id');
+
+	// 	return $testcases;
+	// }
+
+	public function testcaseVersions()
+	{
+		return $this->belongsToMany('TestCaseVersion', 'test_plans_test_cases', 'test_plan_id', 'test_case_version_id')
+			->withTimestamps();
 	}
 
 	public function hasExecutions()
