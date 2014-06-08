@@ -55,7 +55,6 @@ class TestPlansController extends \NavigationTreeController {
 		$project = $this->getCurrentProject();
 		$projectId = $project->id;
 		$args['testplans'] = $this->testplans->findByProjectId($projectId);
-		$queries = DB::getQueryLog();
 		return $this->theme->scope('testplan.index', $args)->render();
 	}
 
@@ -197,7 +196,7 @@ class TestPlansController extends \NavigationTreeController {
 			add('Add Test Cases');
 		$currentProject = $this->getCurrentProject();
 		$nodesSelected = array();
-		$testcases = $testplan->testcases;
+		$testcases = $testplan->testcasesDetached();
 
 		foreach ($testcases as $testcase)
 		{

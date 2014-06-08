@@ -27,40 +27,44 @@ class TestPlan extends Magniloquent {
 
 	protected static $rules = array(
 		"save" => array(
-				'name' => 'required|min:2',
-				'description' => '',
-				'project_id' => 'required'
+			'name' => 'required|min:2',
+			'description' => '',
+			'project_id' => 'required'
 		),
 		"create" => array(
-				'name' => 'unique:test_plans,name,project_id,:project_id|required|min:2',
-				'description' => '',
-				'project_id' => 'required'
+			'name' => 'unique:test_plans,name,project_id,:project_id|required|min:2',
+			'description' => '',
+			'project_id' => 'required'
 		),
 		"update" => array()
 	);
 
 	protected static $relationships = array(
-		'project' => array('belongsTo', 'Project', 'project_id')
+		'project' => array('belongsTo', 'Project', 'project_id'),
+		'testruns' => array('hasMany', 'TestRun')
 	);
 
 	protected static $purgeable = [''];
 
-	public function testcases()
+	public function testcasesDetached()
 	{
-		return $this->belongsToMany('TestCase2', 'test_plans_test_cases', 'test_plan_id', 'test_case_id')
-				->withTimestamps();
-	}
-
-	public function testruns()
-	{
-		return $this->hasMany('TestRun');
+		$sql = <<<EOF
+select tc.*, tcv.version 
+from test_cases tc 
+inner join test_case_versions tcv on tc.id = tcv.test_case_id 
+inner join test_plans_test_cases tptc on tptc.test_case_version_id = tcv.id 
+where tptc.test_plan_id = :test_plan_id 
+group by tc.id 
+EOF;
+		$results = DB::select(DB::raw($sql), array('test_plan_id' => $this->id));
+		return $results;
 	}
 
 	public function hasExecutions()
 	{
 		return TestPlan::join('test_runs', 'test_runs.test_plan_id', '=', $this->id)
 			->join('executions', 'executions.test_run_id', '=', 'test_runs.id')
-			->count('test_plans.id');
+			->count('test_plans.id') > 0;
 	}
 
 }

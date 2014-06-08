@@ -22,7 +22,7 @@
 					<tr>
 						<td>{{ HTML.linkRoute('planning.show', testplan.name, [testplan.id]) }}</td>
 						<td>{{ testplan.description }}</td>
-						<td>{{ testplan.testcases.count }}</td>
+						<td>{{ testplan.testcasesDetached|length }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
