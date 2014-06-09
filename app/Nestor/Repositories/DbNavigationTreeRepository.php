@@ -27,7 +27,7 @@ class DbNavigationTreeRepository implements NavigationTreeRepository {
 	 */
 	public function children($ancestor, $length = 1)
 	{
-		Log::info(sprintf('Retriving children for %s, length %d', $ancestor, $length));
+		Log::info(sprintf('Retrieving children for %s, length %d', $ancestor, $length));
 
 		$children = DB::table('navigation_tree AS a')
 			->select(DB::raw("a.*"))
@@ -56,7 +56,7 @@ class DbNavigationTreeRepository implements NavigationTreeRepository {
 	 */
 	public function parents($descendant)
 	{
-		Log::info(sprintf('Retriving parents for %s', $descendant));
+		Log::info(sprintf('Retrieving parents for %s', $descendant));
 // 		return NavigationTreeNode::
 // 			where('descendant', $descendant)->
 // 			get();

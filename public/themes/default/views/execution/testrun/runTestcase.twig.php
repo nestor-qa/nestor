@@ -13,7 +13,7 @@
 				</div>
 				<div class="col-xs-8" id="test_specification">
 					<div id='nodes_panel'>
-						<h4>{{ testcase.name }}</h4>
+						<h4>{{ testcaseVersion.name }}</h4>
 						<h5>View execution history <button class='btn' id='sub-executions-btn'>&#x25BC;</button></h5>
 
 						<div id='sub-executions'>
@@ -46,16 +46,16 @@
 						    {% endif %}
 						</div>
 						<hr />
-						<p>Execution Type: {{ testcase.executionType.first.name }}</p>
+						<p>Execution Type: {{ testcaseVersion.executionType.first.name }}</p>
 						<br/>
 						<h4>Description</h4>
 						<p>
-							{{ testcase.description|default('No description provided') }}
+							{{ testcaseVersion.description|default('No description provided') }}
 						</p>
 						<br/>
 						<h4>Prerequisite</h4>
 						<p>
-							{{ testcase.prerequisite|default('No prerequisites provided') }}
+							{{ testcaseVersion.prerequisite|default('No prerequisites provided') }}
 						</p>
 						<br/>
 

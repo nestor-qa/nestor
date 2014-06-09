@@ -236,8 +236,9 @@ class TestRunsController extends \NavigationTreeController {
 		$currentProject = $this->getCurrentProject();
 		$testrun = $this->testruns->find($test_run_id);
 		$testplan = $testrun->testplan;
-		$testcases = $testplan->testcases;
+		$testcases = $testplan->testcases();
 
+		Log::debug('Creating breadcrumb');
 		$this->theme->breadcrumb()->
 			add('Home', URL::to('/'))->
 			add('Execution', URL::to('/execution'))->
@@ -272,8 +273,9 @@ class TestRunsController extends \NavigationTreeController {
 		$currentProject = $this->getCurrentProject();
 		$testrun = $this->testruns->find($testRunId);
 		$testplan = $testrun->testplan;
-		$testcases = $testplan->testcases;
+		$testcases = $testplan->testcases();
 		$testcase = $this->testcases->find($testCaseId);
+		$testcaseVersion = $testcase->latestVersion();
 		$executionStatuses = $this->executionStatuses->all();
 
 		$this->theme->breadcrumb()->
@@ -293,7 +295,7 @@ class TestRunsController extends \NavigationTreeController {
 		$navigationTree = $this->createNavigationTree($nodes, '1-'.$currentProject->id);
 		$navigationTreeHtml = $this->createTestRunTreeHTML($navigationTree, $testrun->id, $showOnly, $testCaseId);
 		
-		$executions = $this->executions->getExecutionsForTestCase($testCaseId, $testRunId)->get();
+		$executions = $this->executions->getExecutionsForTestCaseVersion($testcaseVersion->id, $testRunId)->get();
 
 		$lastExecution = $executions->last();
 		$lastExecutionStatusId = 1; // FIXME magic number, 1 is NOT RUN
@@ -325,6 +327,7 @@ class TestRunsController extends \NavigationTreeController {
 		$args['testplan'] = $testplan;
 		$args['testcases'] = $testcases;
 		$args['testcase'] = $testcase;
+		$args['testcaseVersion'] = $testcaseVersion;
 		$args['steps'] = $steps;
 		$args['executions'] = $executions;
 		$args['executionStatuses'] = $executionStatuses;
@@ -340,6 +343,7 @@ class TestRunsController extends \NavigationTreeController {
 	{
 		if (Input::get('execution_status_id') == 1) // FIXME use constants
 		{
+			Log::warning('Trying to set the test case execution status back to Not Run');
 			$messages = new Illuminate\Support\MessageBag;
 			$messages->add('nestor.customError', 'You cannot set an execution status back to Not Run');
 			return Redirect::to(sprintf('/execution/testruns/%d/run/testcase/%d', $testRunId, $testCaseId))
@@ -347,6 +351,7 @@ class TestRunsController extends \NavigationTreeController {
 				->withErrors($messages);
 		}
 		$testcase = $this->testcases->find($testCaseId);
+		$testcaseVersion = $testcase->latestVersion();
 		$steps = $testcase->steps()->get();
 		$stepResults = array();
 		foreach ($_POST as $key => $value)
@@ -371,6 +376,7 @@ class TestRunsController extends \NavigationTreeController {
 		{
 			if ($value == 1) // FIXME use constants
 			{
+				Log::warning('Trying to set the test case step execution status back to Not Run');
 				$messages = new Illuminate\Support\MessageBag;
 				$messages->add('nestor.customError', sprintf('You cannot set step %d execution status to Not Run', $key));
 				return Redirect::to(sprintf('/execution/testruns/%d/run/testcase/%d', $testRunId, $testCaseId))
@@ -379,13 +385,16 @@ class TestRunsController extends \NavigationTreeController {
 			}
 		}
 
+		Log::debug('Starting new DB transaction');
 		DB::beginTransaction();
 
 		try 
 		{
+			Log::debug('Retrieving test run');
 			$testrun = $this->testruns->find($testRunId);
+			Log::debug(sprintf('Creating a new execution for test case version %d with execution status %d', $testcaseVersion->id, Input::get('execution_status_id')));
 			$execution = $this->executions->create($testrun->id, 
-				$testcase->id, 
+				$testcaseVersion->id, 
 				Input::get('execution_status_id'), 
 				Input::get('notes'));
 
@@ -394,6 +403,7 @@ class TestRunsController extends \NavigationTreeController {
 				// save its steps execution statuses
 				foreach ($stepResults as $key => $value) 
 				{
+					Log::debug(sprintf('Creating new step execution for execution %d', $execution->id));
 					$stepExecution = $this->stepExecutions->create($execution->id, $key, $value);
 					if (!$stepExecution->isValid() || !$stepExecution->isSaved())
 					{
@@ -401,6 +411,7 @@ class TestRunsController extends \NavigationTreeController {
 						throw new Exception(sprintf("Failed to save step %d with execution status %d", $key, $value));
 					}
 				}
+				Log::debug('Committing transaction');
 				DB::commit();
 				return Redirect::to(Request::url())->with('success', 'Test executed');
 			} else {
@@ -409,6 +420,7 @@ class TestRunsController extends \NavigationTreeController {
 			}
 		} catch (Exception $e)
 		{
+			Log::debug('Rolling back transaction');
 			DB::rollback();
 			$messages = new Illuminate\Support\MessageBag;
 			$messages->add('nestor.customError', $e->getMessage());

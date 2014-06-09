@@ -25,6 +25,8 @@ class TestCase2 extends Magniloquent {
 	 */
 	protected $hidden = array('');
 
+	protected static $purgeable = [];
+
 	protected static $rules = array(
 		"save" => array(
 			'test_suite_id' => 'required',
@@ -36,11 +38,22 @@ class TestCase2 extends Magniloquent {
 		),
 	);
 
-	protected static $relationships = array(
-		'project' => array('belongsTo', 'Project', 'project_id'),
-		'testSuite' => array('belongsTo', 'TestSuite', 'test_suite_id'),
-		'testCaseVersions' => array('hasMany', 'TestCaseVersion', 'test_case_id')
-	);
+	protected static $relationships = array();
+
+	public function project()
+	{
+		return $this->belongsTo('Project', 'project_id');
+	}
+
+	public function testSuite()
+	{
+		return $this->belongsTo('TestSuite', 'test_suite_id');
+	}
+
+	public function testCaseVersions()
+	{
+		return $this->hasMany('TestCaseVersion', 'test_case_id');
+	}
 
 	public function latestVersion()
 	{
@@ -50,5 +63,9 @@ class TestCase2 extends Magniloquent {
 			->firstOrFail();
 	}
 
-	protected static $purgeable = [];
+	public function steps()
+	{
+		return $this->hasManyThrough('TestCaseStepVersion', 'TestCaseVersion', 'test_case_id', 'test_case_version_id');
+	}
+
 }

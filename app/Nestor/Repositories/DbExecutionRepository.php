@@ -1,6 +1,6 @@
 <?php namespace Nestor\Repositories;
 
-use \Execution;
+use Execution;
 
 class DbExecutionRepository implements ExecutionRepository {
 
@@ -19,9 +19,9 @@ class DbExecutionRepository implements ExecutionRepository {
 		return Execution::where('test_run_id', $test_run_id)->get();
 	}
 
-	public function findByTestCaseId($test_case_id)
+	public function findByTestCaseVersionId($testCaseVersionId)
 	{
-		return Execution::where('test_case_id', $test_case_id)->get();
+		return Execution::where('test_case_version_id', $testCaseVersionId)->get();
 	}
 
 	public function findByExecutionStatusId($execution_status_id)
@@ -29,16 +29,16 @@ class DbExecutionRepository implements ExecutionRepository {
 		return Execution::where('execution_status_id', $execution_status_id)->get();
 	}
 
-	public function create($test_run_id, $test_case_id, $execution_status_id, $notes)
+	public function create($test_run_id, $test_case_version_id, $execution_status_id, $notes)
 	{
-		return Execution::create(compact('test_run_id', 'test_case_id', 'execution_status_id', 'notes'));
+		return Execution::create(compact('test_run_id', 'test_case_version_id', 'execution_status_id', 'notes'));
 	}
 
-	public function update($id, $test_run_id, $test_case_id, $execution_status_id, $notes)
+	public function update($id, $test_run_id, $test_case_version_id, $execution_status_id, $notes)
 	{
 		$execution = $this->find($id);
 
-		$execution->fill(compact('execution', 'test_case_id', 'execution_status_id', 'notes'))->save();
+		$execution->fill(compact('execution', 'test_case_version_id', 'execution_status_id', 'notes'))->save();
 
 		return $execution;
 	}
@@ -48,9 +48,9 @@ class DbExecutionRepository implements ExecutionRepository {
 		return Execution::where('id', $id)->delete();
 	}
 
-	public function getExecutionsForTestCase($testCaseId, $testRunId)
+	public function getExecutionsForTestCaseVersion($testCaseVersionId, $testRunId)
 	{
-		return Execution::where('test_case_id', '=', $testCaseId)
+		return Execution::where('test_case_version_id', '=', $testCaseVersionId)
 			->where('test_run_id', '=', $testRunId)
 			->orderBy('executions.created_at');
 	}

@@ -8,7 +8,7 @@ interface ExecutionRepository {
 
 	public function findByTestRunId($test_run_id);
 
-	public function findByTestCaseId($test_case_id);
+	public function findByTestCaseVersionId($test_case_id);
 
 	public function findByExecutionStatusId($execution_status_id);
 
@@ -18,6 +18,6 @@ interface ExecutionRepository {
 
 	public function delete($id);
 
-	public function getExecutionsForTestCase($testCaseId, $testRunId);
+	public function getExecutionsForTestCaseVersion($testCaseId, $testRunId);
 
 }
